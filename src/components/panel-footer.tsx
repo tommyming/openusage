@@ -113,7 +113,7 @@ export function PanelFooter({
 
   return (
     <>
-      <div className="flex justify-between items-center h-8 pt-1.5 border-t">
+      <div className="flex justify-between items-center h-6 pt-1 border-t">
         <VersionDisplay
           version={version}
           updateStatus={updateStatus}
@@ -125,8 +125,8 @@ export function PanelFooter({
           <button
             type="button"
             onClick={(event) => {
-              event.currentTarget.blur()
-              onRefreshAll()
+              event.currentTarget.blur();
+              onRefreshAll();
             }}
             className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors cursor-pointer"
             title="Refresh now"
@@ -139,9 +139,7 @@ export function PanelFooter({
           </span>
         )}
       </div>
-      {showAbout && (
-        <AboutDialog version={version} onClose={onCloseAbout} />
-      )}
+      {showAbout && <AboutDialog version={version} onClose={onCloseAbout} />}
     </>
   );
 }
