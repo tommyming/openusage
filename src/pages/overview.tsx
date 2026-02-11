@@ -1,13 +1,18 @@
-import { ProviderCard } from "@/components/provider-card"
-import type { PluginDisplayState } from "@/lib/plugin-types"
-import type { DisplayMode, ResetTimerDisplayMode } from "@/lib/settings"
+import { ProviderCard } from "@/components/provider-card";
+import type { PluginDisplayState } from "@/lib/plugin-types";
+import type {
+  DensityMode,
+  DisplayMode,
+  ResetTimerDisplayMode,
+} from "@/lib/settings";
 
 interface OverviewPageProps {
-  plugins: PluginDisplayState[]
-  onRetryPlugin?: (pluginId: string) => void
-  displayMode: DisplayMode
-  resetTimerDisplayMode: ResetTimerDisplayMode
-  onResetTimerDisplayModeToggle?: () => void
+  plugins: PluginDisplayState[];
+  onRetryPlugin?: (pluginId: string) => void;
+  displayMode: DisplayMode;
+  resetTimerDisplayMode: ResetTimerDisplayMode;
+  onResetTimerDisplayModeToggle?: () => void;
+  densityMode?: DensityMode;
 }
 
 export function OverviewPage({
@@ -16,13 +21,14 @@ export function OverviewPage({
   displayMode,
   resetTimerDisplayMode,
   onResetTimerDisplayModeToggle,
+  densityMode = "normal",
 }: OverviewPageProps) {
   if (plugins.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-8">
         No providers enabled
       </div>
-    )
+    );
   }
 
   return (
@@ -38,13 +44,16 @@ export function OverviewPage({
           lines={plugin.data?.lines ?? []}
           skeletonLines={plugin.meta.lines}
           lastManualRefreshAt={plugin.lastManualRefreshAt}
-          onRetry={onRetryPlugin ? () => onRetryPlugin(plugin.meta.id) : undefined}
+          onRetry={
+            onRetryPlugin ? () => onRetryPlugin(plugin.meta.id) : undefined
+          }
           scopeFilter="overview"
           displayMode={displayMode}
           resetTimerDisplayMode={resetTimerDisplayMode}
           onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
+          densityMode={densityMode}
         />
       ))}
     </div>
-  )
+  );
 }

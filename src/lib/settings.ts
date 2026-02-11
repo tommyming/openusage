@@ -18,6 +18,8 @@ export type DisplayMode = "used" | "left";
 
 export type ResetTimerDisplayMode = "relative" | "absolute";
 
+export type DensityMode = "normal" | "compact";
+
 export type TrayIconStyle = "bars" | "circle" | "provider" | "textOnly";
 
 export type GlobalShortcut = string | null;
@@ -31,26 +33,40 @@ const RESET_TIMER_DISPLAY_MODE_KEY = "resetTimerDisplayMode";
 const TRAY_ICON_STYLE_KEY = "trayIconStyle";
 const TRAY_SHOW_PERCENTAGE_KEY = "trayShowPercentage";
 const GLOBAL_SHORTCUT_KEY = "globalShortcut";
+const DENSITY_MODE_KEY = "densityMode";
 
 export const DEFAULT_AUTO_UPDATE_INTERVAL: AutoUpdateIntervalMinutes = 15;
 export const DEFAULT_THEME_MODE: ThemeMode = "system";
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "left";
-export const DEFAULT_RESET_TIMER_DISPLAY_MODE: ResetTimerDisplayMode = "relative";
+export const DEFAULT_RESET_TIMER_DISPLAY_MODE: ResetTimerDisplayMode =
+  "relative";
 export const DEFAULT_TRAY_ICON_STYLE: TrayIconStyle = "bars";
 export const DEFAULT_TRAY_SHOW_PERCENTAGE = false;
 export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
+export const DEFAULT_DENSITY_MODE: DensityMode = "normal";
 
 const AUTO_UPDATE_INTERVALS: AutoUpdateIntervalMinutes[] = [5, 15, 30, 60];
+const DENSITY_MODES: DensityMode[] = ["normal", "compact"];
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 const DISPLAY_MODES: DisplayMode[] = ["used", "left"];
-const RESET_TIMER_DISPLAY_MODES: ResetTimerDisplayMode[] = ["relative", "absolute"];
-const TRAY_ICON_STYLES: TrayIconStyle[] = ["bars", "circle", "provider", "textOnly"];
+const RESET_TIMER_DISPLAY_MODES: ResetTimerDisplayMode[] = [
+  "relative",
+  "absolute",
+];
+const TRAY_ICON_STYLES: TrayIconStyle[] = [
+  "bars",
+  "circle",
+  "provider",
+  "textOnly",
+];
 
-export const AUTO_UPDATE_OPTIONS: { value: AutoUpdateIntervalMinutes; label: string }[] =
-  AUTO_UPDATE_INTERVALS.map((value) => ({
-    value,
-    label: value === 60 ? "1 hour" : `${value} min`,
-  }));
+export const AUTO_UPDATE_OPTIONS: {
+  value: AutoUpdateIntervalMinutes;
+  label: string;
+}[] = AUTO_UPDATE_INTERVALS.map((value) => ({
+  value,
+  label: value === 60 ? "1 hour" : `${value} min`,
+}));
 
 export const THEME_OPTIONS: { value: ThemeMode; label: string }[] =
   THEME_MODES.map((value) => ({
@@ -63,17 +79,29 @@ export const DISPLAY_MODE_OPTIONS: { value: DisplayMode; label: string }[] = [
   { value: "used", label: "Used" },
 ];
 
-export const RESET_TIMER_DISPLAY_OPTIONS: { value: ResetTimerDisplayMode; label: string }[] = [
+export const RESET_TIMER_DISPLAY_OPTIONS: {
+  value: ResetTimerDisplayMode;
+  label: string;
+}[] = [
   { value: "relative", label: "Relative" },
   { value: "absolute", label: "Absolute" },
 ];
 
-export const TRAY_ICON_STYLE_OPTIONS: { value: TrayIconStyle; label: string }[] = [
+export const TRAY_ICON_STYLE_OPTIONS: {
+  value: TrayIconStyle;
+  label: string;
+}[] = [
   { value: "bars", label: "Bars" },
   { value: "circle", label: "Circle" },
   { value: "provider", label: "Provider" },
   { value: "textOnly", label: "%" },
 ];
+
+export const DENSITY_OPTIONS: { value: DensityMode; label: string }[] =
+  DENSITY_MODES.map((value) => ({
+    value,
+    label: value === "normal" ? "Normal" : "Compact",
+  }));
 
 export function isTrayPercentageMandatory(style: TrayIconStyle): boolean {
   return style === "provider" || style === "textOnly";
@@ -97,12 +125,16 @@ export async function loadPluginSettings(): Promise<PluginSettings> {
   };
 }
 
-export async function savePluginSettings(settings: PluginSettings): Promise<void> {
+export async function savePluginSettings(
+  settings: PluginSettings,
+): Promise<void> {
   await store.set(PLUGIN_SETTINGS_KEY, settings);
   await store.save();
 }
 
-function isAutoUpdateInterval(value: unknown): value is AutoUpdateIntervalMinutes {
+function isAutoUpdateInterval(
+  value: unknown,
+): value is AutoUpdateIntervalMinutes {
   return (
     typeof value === "number" &&
     AUTO_UPDATE_INTERVALS.includes(value as AutoUpdateIntervalMinutes)
@@ -116,7 +148,7 @@ export async function loadAutoUpdateInterval(): Promise<AutoUpdateIntervalMinute
 }
 
 export async function saveAutoUpdateInterval(
-  interval: AutoUpdateIntervalMinutes
+  interval: AutoUpdateIntervalMinutes,
 ): Promise<void> {
   await store.set(AUTO_UPDATE_SETTINGS_KEY, interval);
   await store.save();
@@ -124,7 +156,7 @@ export async function saveAutoUpdateInterval(
 
 export function normalizePluginSettings(
   settings: PluginSettings,
-  plugins: PluginMeta[]
+  plugins: PluginMeta[],
 ): PluginSettings {
   const knownIds = plugins.map((plugin) => plugin.id);
   const knownSet = new Set(knownIds);
@@ -156,7 +188,7 @@ export function normalizePluginSettings(
 
 export function arePluginSettingsEqual(
   a: PluginSettings,
-  b: PluginSettings
+  b: PluginSettings,
 ): boolean {
   if (a.order.length !== b.order.length) return false;
   if (a.disabled.length !== b.disabled.length) return false;
@@ -185,7 +217,9 @@ export async function saveThemeMode(mode: ThemeMode): Promise<void> {
 }
 
 function isDisplayMode(value: unknown): value is DisplayMode {
-  return typeof value === "string" && DISPLAY_MODES.includes(value as DisplayMode);
+  return (
+    typeof value === "string" && DISPLAY_MODES.includes(value as DisplayMode)
+  );
 }
 
 export async function loadDisplayMode(): Promise<DisplayMode> {
@@ -199,7 +233,9 @@ export async function saveDisplayMode(mode: DisplayMode): Promise<void> {
   await store.save();
 }
 
-function isResetTimerDisplayMode(value: unknown): value is ResetTimerDisplayMode {
+function isResetTimerDisplayMode(
+  value: unknown,
+): value is ResetTimerDisplayMode {
   return (
     typeof value === "string" &&
     RESET_TIMER_DISPLAY_MODES.includes(value as ResetTimerDisplayMode)
@@ -212,19 +248,25 @@ export async function loadResetTimerDisplayMode(): Promise<ResetTimerDisplayMode
   return DEFAULT_RESET_TIMER_DISPLAY_MODE;
 }
 
-export async function saveResetTimerDisplayMode(mode: ResetTimerDisplayMode): Promise<void> {
+export async function saveResetTimerDisplayMode(
+  mode: ResetTimerDisplayMode,
+): Promise<void> {
   await store.set(RESET_TIMER_DISPLAY_MODE_KEY, mode);
   await store.save();
 }
 
 export function isTrayIconStyle(value: unknown): value is TrayIconStyle {
-  return typeof value === "string" && TRAY_ICON_STYLES.includes(value as TrayIconStyle);
+  return (
+    typeof value === "string" &&
+    TRAY_ICON_STYLES.includes(value as TrayIconStyle)
+  );
 }
 
 export async function loadTrayIconStyle(): Promise<TrayIconStyle> {
   const stored = await store.get<unknown>(TRAY_ICON_STYLE_KEY);
   // Backward compatibility with older tray style values.
-  if (stored === "barsWithPercentText" || stored === "barWithPercentText") return "bars";
+  if (stored === "barsWithPercentText" || stored === "barWithPercentText")
+    return "bars";
   if (stored === "circularWithPercentText") return "circle";
   if (isTrayIconStyle(stored)) return stored;
   return DEFAULT_TRAY_ICON_STYLE;
@@ -251,9 +293,15 @@ export function getEnabledPluginIds(settings: PluginSettings): string[] {
   return settings.order.filter((id) => !disabledSet.has(id));
 }
 
-function isGlobalShortcut(value: unknown): value is GlobalShortcut {
+export function isGlobalShortcut(value: unknown): value is GlobalShortcut {
   if (value === null) return true;
   return typeof value === "string";
+}
+
+function isDensityMode(value: unknown): value is DensityMode {
+  return (
+    typeof value === "string" && DENSITY_MODES.includes(value as DensityMode)
+  );
 }
 
 export async function loadGlobalShortcut(): Promise<GlobalShortcut> {
@@ -262,7 +310,20 @@ export async function loadGlobalShortcut(): Promise<GlobalShortcut> {
   return DEFAULT_GLOBAL_SHORTCUT;
 }
 
-export async function saveGlobalShortcut(shortcut: GlobalShortcut): Promise<void> {
+export async function saveGlobalShortcut(
+  shortcut: GlobalShortcut,
+): Promise<void> {
   await store.set(GLOBAL_SHORTCUT_KEY, shortcut);
+  await store.save();
+}
+
+export async function loadDensityMode(): Promise<DensityMode> {
+  const stored = await store.get<unknown>(DENSITY_MODE_KEY);
+  if (isDensityMode(stored)) return stored;
+  return DEFAULT_DENSITY_MODE;
+}
+
+export async function saveDensityMode(mode: DensityMode): Promise<void> {
+  await store.set(DENSITY_MODE_KEY, mode);
   await store.save();
 }

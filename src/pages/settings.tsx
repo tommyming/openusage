@@ -22,11 +22,13 @@ import { GlobalShortcutSection } from "@/components/global-shortcut-section";
 import {
   AUTO_UPDATE_OPTIONS,
   DISPLAY_MODE_OPTIONS,
+  DENSITY_OPTIONS,
   RESET_TIMER_DISPLAY_OPTIONS,
   TRAY_ICON_STYLE_OPTIONS,
   THEME_OPTIONS,
   isTrayPercentageMandatory,
   type AutoUpdateIntervalMinutes,
+  type DensityMode,
   type DisplayMode,
   type GlobalShortcut,
   type ResetTimerDisplayMode,
@@ -56,19 +58,30 @@ function getPreviewVisualBarFraction(fraction: number): number {
   return clamped;
 }
 
-function getPreviewBarLayout(fraction: number): { fillPercent: number; remainderPercent: number } {
-  if (!Number.isFinite(fraction) || fraction <= 0) return { fillPercent: 0, remainderPercent: 0 };
+function getPreviewBarLayout(fraction: number): {
+  fillPercent: number;
+  remainderPercent: number;
+} {
+  if (!Number.isFinite(fraction) || fraction <= 0)
+    return { fillPercent: 0, remainderPercent: 0 };
   const visual = getPreviewVisualBarFraction(fraction);
   if (visual >= 1) return { fillPercent: 100, remainderPercent: 0 };
 
   const minFillW = 1;
-  const minVisibleRemainderPx = getPreviewMinVisibleRemainderPx(PREVIEW_BAR_TRACK_PX);
-  const maxFillW = Math.max(minFillW, PREVIEW_BAR_TRACK_PX - minVisibleRemainderPx);
-  const fillW = Math.max(minFillW, Math.min(maxFillW, Math.round(PREVIEW_BAR_TRACK_PX * visual)));
+  const minVisibleRemainderPx =
+    getPreviewMinVisibleRemainderPx(PREVIEW_BAR_TRACK_PX);
+  const maxFillW = Math.max(
+    minFillW,
+    PREVIEW_BAR_TRACK_PX - minVisibleRemainderPx,
+  );
+  const fillW = Math.max(
+    minFillW,
+    Math.min(maxFillW, Math.round(PREVIEW_BAR_TRACK_PX * visual)),
+  );
   const trueRemainderW = PREVIEW_BAR_TRACK_PX - fillW;
   const remainderDrawW = Math.min(
     PREVIEW_BAR_TRACK_PX - 1,
-    Math.max(trueRemainderW, minVisibleRemainderPx)
+    Math.max(trueRemainderW, minVisibleRemainderPx),
   );
   return {
     fillPercent: (fillW / PREVIEW_BAR_TRACK_PX) * 100,
@@ -86,7 +99,9 @@ function TrayIconStylePreview({
   providerIconUrl?: string;
 }) {
   const trackClass = isActive ? "bg-primary-foreground/30" : "bg-foreground/15";
-  const remainderClass = isActive ? "bg-primary-foreground/55" : "bg-foreground/25";
+  const remainderClass = isActive
+    ? "bg-primary-foreground/55"
+    : "bg-foreground/25";
   const fillClass = isActive ? "bg-primary-foreground" : "bg-foreground";
   const textClass = isActive ? "text-primary-foreground" : "text-foreground";
 
@@ -96,7 +111,8 @@ function TrayIconStylePreview({
       <div className="flex items-center">
         <div className="flex flex-col gap-0.5 w-5">
           {fractions.map((fraction, i) => {
-            const { fillPercent, remainderPercent } = getPreviewBarLayout(fraction);
+            const { fillPercent, remainderPercent } =
+              getPreviewBarLayout(fraction);
             return (
               <div key={i} className={`relative h-1 rounded-sm ${trackClass}`}>
                 {remainderPercent > 0 && (
@@ -115,7 +131,10 @@ function TrayIconStylePreview({
                 )}
                 <div
                   className={`h-1 ${fillClass}`}
-                  style={{ width: `${fillPercent}%`, borderRadius: "2px 1px 1px 2px" }}
+                  style={{
+                    width: `${fillPercent}%`,
+                    borderRadius: "2px 1px 1px 2px",
+                  }}
                 />
               </div>
             );
@@ -164,7 +183,7 @@ function TrayIconStylePreview({
           aria-hidden
           className={cn(
             "w-[18px] h-[18px] shrink-0",
-            isActive ? "bg-primary-foreground" : "bg-foreground"
+            isActive ? "bg-primary-foreground" : "bg-foreground",
           )}
           style={{
             WebkitMaskImage: `url(${providerIconUrl})`,
@@ -195,7 +214,12 @@ function TrayIconStylePreview({
   }
 
   return (
-    <span className={cn("text-[13px] font-bold tabular-nums leading-none", textClass)}>
+    <span
+      className={cn(
+        "text-[13px] font-bold tabular-nums leading-none",
+        textClass,
+      )}
+    >
       %
     </span>
   );
@@ -229,7 +253,7 @@ function SortablePluginItem({
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-md bg-card",
         "border border-transparent",
-        isDragging && "opacity-50 border-border"
+        isDragging && "opacity-50 border-border",
       )}
     >
       <button
@@ -244,7 +268,7 @@ function SortablePluginItem({
       <span
         className={cn(
           "flex-1 text-sm",
-          !plugin.enabled && "text-muted-foreground"
+          !plugin.enabled && "text-muted-foreground",
         )}
       >
         {plugin.name}
@@ -271,6 +295,8 @@ interface SettingsPageProps {
   onDisplayModeChange: (value: DisplayMode) => void;
   resetTimerDisplayMode: ResetTimerDisplayMode;
   onResetTimerDisplayModeChange: (value: ResetTimerDisplayMode) => void;
+  densityMode: DensityMode;
+  onDensityModeChange: (value: DensityMode) => void;
   trayIconStyle: TrayIconStyle;
   onTrayIconStyleChange: (value: TrayIconStyle) => void;
   trayShowPercentage: boolean;
@@ -292,6 +318,8 @@ export function SettingsPage({
   onDisplayModeChange,
   resetTimerDisplayMode,
   onResetTimerDisplayModeChange,
+  densityMode,
+  onDensityModeChange,
   trayIconStyle,
   onTrayIconStyleChange,
   trayShowPercentage,
@@ -309,7 +337,7 @@ export function SettingsPage({
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -332,7 +360,11 @@ export function SettingsPage({
           How obsessive are you
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Auto-update interval">
+          <div
+            className="flex gap-1"
+            role="radiogroup"
+            aria-label="Auto-update interval"
+          >
             {AUTO_UPDATE_OPTIONS.map((option) => {
               const isActive = option.value === autoUpdateInterval;
               return (
@@ -359,7 +391,11 @@ export function SettingsPage({
           Glass half full or half empty
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Usage display mode">
+          <div
+            className="flex gap-1"
+            role="radiogroup"
+            aria-label="Usage display mode"
+          >
             {DISPLAY_MODE_OPTIONS.map((option) => {
               const isActive = option.value === displayMode;
               return (
@@ -386,14 +422,21 @@ export function SettingsPage({
           Countdown or clock time
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Reset timer display mode">
+          <div
+            className="flex gap-1"
+            role="radiogroup"
+            aria-label="Reset timer display mode"
+          >
             {RESET_TIMER_DISPLAY_OPTIONS.map((option) => {
               const isActive = option.value === resetTimerDisplayMode;
               const absoluteTimeExample = new Intl.DateTimeFormat(undefined, {
                 hour: "numeric",
                 minute: "2-digit",
               }).format(new Date(2026, 1, 2, 11, 4));
-              const example = option.value === "relative" ? "5h 12m" : `today at ${absoluteTimeExample}`;
+              const example =
+                option.value === "relative"
+                  ? "5h 12m"
+                  : `today at ${absoluteTimeExample}`;
               return (
                 <Button
                   key={option.value}
@@ -409,11 +452,45 @@ export function SettingsPage({
                   <span
                     className={cn(
                       "text-xs font-normal",
-                      isActive ? "text-primary-foreground/80" : "text-muted-foreground"
+                      isActive
+                        ? "text-primary-foreground/80"
+                        : "text-muted-foreground",
                     )}
                   >
                     {example}
                   </span>
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+      <section>
+        <h3 className="text-lg font-semibold mb-0">Layout Density</h3>
+        <p className="text-sm text-muted-foreground mb-2">
+          How compact everything looks
+        </p>
+        <div className="bg-muted/50 rounded-lg p-1">
+          <div
+            className="flex gap-1"
+            role="radiogroup"
+            aria-label="Density mode"
+          >
+            {DENSITY_OPTIONS.map((option) => {
+              const isActive = option.value === densityMode;
+              return (
+                <Button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-label={option.label}
+                  aria-checked={isActive}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onDensityModeChange(option.value)}
+                >
+                  {option.label}
                 </Button>
               );
             })}
@@ -426,7 +503,11 @@ export function SettingsPage({
           The little guy up top
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Tray icon style">
+          <div
+            className="flex gap-1"
+            role="radiogroup"
+            aria-label="Tray icon style"
+          >
             {TRAY_ICON_STYLE_OPTIONS.map((option) => {
               const isActive = option.value === trayIconStyle;
               return (
@@ -444,7 +525,9 @@ export function SettingsPage({
                   <TrayIconStylePreview
                     style={option.value}
                     isActive={isActive}
-                    providerIconUrl={option.value === "provider" ? providerIconUrl : undefined}
+                    providerIconUrl={
+                      option.value === "provider" ? providerIconUrl : undefined
+                    }
                   />
                 </Button>
               );
@@ -456,7 +539,7 @@ export function SettingsPage({
             "mt-2 flex items-center gap-2 text-sm select-none",
             percentageMandatory
               ? "text-muted-foreground cursor-not-allowed"
-              : "text-foreground"
+              : "text-foreground",
           )}
         >
           <Checkbox

@@ -14,6 +14,7 @@ import { PluginError } from "@/components/plugin-error";
 import { useNowTicker } from "@/hooks/use-now-ticker";
 import {
   REFRESH_COOLDOWN_MS,
+  type DensityMode,
   type DisplayMode,
   type ResetTimerDisplayMode,
 } from "@/lib/settings";
@@ -40,6 +41,7 @@ interface ProviderCardProps {
   displayMode: DisplayMode;
   resetTimerDisplayMode?: ResetTimerDisplayMode;
   onResetTimerDisplayModeToggle?: () => void;
+  densityMode?: DensityMode;
 }
 
 export function formatNumber(value: number) {
@@ -176,7 +178,80 @@ export function ProviderCard({
   displayMode,
   resetTimerDisplayMode = "relative",
   onResetTimerDisplayModeToggle,
+  densityMode = "compact",
 }: ProviderCardProps) {
+  // Get density-based styling classes
+  const getCardPadding = () => {
+    switch (densityMode) {
+      case "normal":
+        return "py-3";
+      case "compact":
+      default:
+        return "py-1.5";
+    }
+  };
+
+  const getMetricSpacing = () => {
+    switch (densityMode) {
+      case "normal":
+        return "space-y-4";
+      case "compact":
+      default:
+        return "space-y-2";
+    }
+  };
+
+  const getHeaderGap = () => {
+    switch (densityMode) {
+      case "normal":
+        return "gap-1.5";
+      case "compact":
+      default:
+        return "gap-0.5";
+    }
+  };
+
+  const getProgressMargin = () => {
+    switch (densityMode) {
+      case "normal":
+        return "mb-1.5";
+      case "compact":
+      default:
+        return "mb-0.5";
+    }
+  };
+
+  const getHeaderSize = () => {
+    switch (densityMode) {
+      case "normal":
+        return "text-lg";
+      case "compact":
+      default:
+        return "text-sm";
+    }
+  };
+
+  const getLabelSize = () => {
+    switch (densityMode) {
+      case "normal":
+        return "text-sm";
+      case "compact":
+      default:
+        return "text-xs";
+    }
+  };
+
+  const getSecondarySize = () => {
+    switch (densityMode) {
+      case "normal":
+        return "text-xs";
+      case "compact":
+      default:
+        return "text-[10px]";
+    }
+  };
+
+  const showSecondaryInfo = densityMode === "normal";
   const cooldownRemainingMs = useMemo(() => {
     if (!lastManualRefreshAt) return 0;
     const remaining = REFRESH_COOLDOWN_MS - (Date.now() - lastManualRefreshAt);
@@ -231,11 +306,11 @@ export function ProviderCard({
 
   return (
     <div>
-      <div className="py-2">
+      <div className={getCardPadding()}>
         <div className="flex items-center justify-between mb-2">
           <div className="relative flex items-center">
             <h2
-              className="text-lg font-semibold"
+              className={`${getHeaderSize()} font-semibold`}
               style={{ transform: "translateZ(0)" }}
             >
               {name}
@@ -313,7 +388,7 @@ export function ProviderCard({
         {loading && !error && <SkeletonLines lines={filteredSkeletonLines} />}
 
         {!loading && !error && (
-          <div className="space-y-2.5">
+          <div className={getMetricSpacing()}>
             {filteredLines.map((line, index) => (
               <MetricLineRenderer
                 key={`${line.label}-${index}`}
@@ -322,6 +397,11 @@ export function ProviderCard({
                 resetTimerDisplayMode={resetTimerDisplayMode}
                 onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
                 now={now}
+                labelSize={getLabelSize()}
+                secondarySize={getSecondarySize()}
+                showSecondaryInfo={showSecondaryInfo}
+                headerGap={getHeaderGap()}
+                progressMargin={getProgressMargin()}
               />
             ))}
           </div>
@@ -338,30 +418,42 @@ function MetricLineRenderer({
   resetTimerDisplayMode,
   onResetTimerDisplayModeToggle,
   now,
+  labelSize,
+  secondarySize,
+  showSecondaryInfo,
+  headerGap,
+  progressMargin,
 }: {
   line: MetricLine;
   displayMode: DisplayMode;
   resetTimerDisplayMode: ResetTimerDisplayMode;
   onResetTimerDisplayModeToggle?: () => void;
   now: number;
+  labelSize: string;
+  secondarySize: string;
+  showSecondaryInfo: boolean;
+  headerGap: string;
+  progressMargin: string;
 }) {
   if (line.type === "text") {
     return (
       <div>
         <div className="flex justify-between items-center h-[22px]">
-          <span className="text-sm text-muted-foreground flex-shrink-0">
+          <span className={`${labelSize} text-muted-foreground flex-shrink-0`}>
             {line.label}
           </span>
           <span
-            className="text-sm text-muted-foreground truncate min-w-0 max-w-[60%] text-right"
+            className={`${labelSize} text-muted-foreground truncate min-w-0 max-w-[60%] text-right`}
             style={line.color ? { color: line.color } : undefined}
             title={line.value}
           >
             {line.value}
           </span>
         </div>
-        {line.subtitle && (
-          <div className="text-xs text-muted-foreground text-right -mt-0.5">
+        {line.subtitle && showSecondaryInfo && (
+          <div
+            className={`${secondarySize} text-muted-foreground text-right -mt-0.5`}
+          >
             {line.subtitle}
           </div>
         )}
@@ -373,7 +465,7 @@ function MetricLineRenderer({
     return (
       <div>
         <div className="flex justify-between items-center h-[22px]">
-          <span className="text-sm text-muted-foreground flex-shrink-0">
+          <span className={`${labelSize} text-muted-foreground flex-shrink-0`}>
             {line.label}
           </span>
           <Badge
@@ -389,8 +481,10 @@ function MetricLineRenderer({
             {line.text}
           </Badge>
         </div>
-        {line.subtitle && (
-          <div className="text-xs text-muted-foreground text-right -mt-0.5">
+        {line.subtitle && showSecondaryInfo && (
+          <div
+            className={`${secondarySize} text-muted-foreground text-right -mt-0.5`}
+          >
             {line.subtitle}
           </div>
         )}
@@ -421,14 +515,6 @@ function MetricLineRenderer({
         ? formatResetAt(now, line.resetsAt)
         : formatResetIn(now, line.resetsAt)
       : null;
-
-    const secondaryText =
-      resetLabel ??
-      (line.format.kind === "percent"
-        ? `${line.limit}% cap`
-        : line.format.kind === "dollars"
-          ? `$${formatNumber(line.limit)} limit`
-          : `${formatCount(line.limit)} ${line.format.suffix}`);
 
     // Calculate pace status if we have reset time and period duration
     const paceResult = hasPaceContext
@@ -470,7 +556,9 @@ function MetricLineRenderer({
 
     return (
       <div>
-        <div className="text-sm font-medium mb-1 flex items-center gap-1">
+        <div
+          className={`${labelSize} font-medium ${progressMargin} flex items-center ${headerGap}`}
+        >
           {line.label}
           {paceStatus && (
             <PaceIndicator
@@ -486,23 +574,36 @@ function MetricLineRenderer({
           markerValue={paceMarkerValue}
         />
         <div className="flex justify-between items-center mt-1.5">
-          <span className="text-xs text-muted-foreground tabular-nums">
+          <span
+            className={`${secondarySize} text-muted-foreground tabular-nums`}
+          >
             {primaryText}
           </span>
-          {secondaryText &&
-            (resetLabel && onResetTimerDisplayModeToggle ? (
-              <button
-                type="button"
-                onClick={onResetTimerDisplayModeToggle}
-                className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors"
-              >
-                {secondaryText}
-              </button>
-            ) : (
-              <span className="text-xs text-muted-foreground">
-                {secondaryText}
-              </span>
-            ))}
+          {resetLabel ? (
+            showSecondaryInfo ? (
+              onResetTimerDisplayModeToggle ? (
+                <button
+                  type="button"
+                  onClick={onResetTimerDisplayModeToggle}
+                  className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors"
+                >
+                  {resetLabel}
+                </button>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {resetLabel}
+                </span>
+              )
+            ) : null
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {line.format.kind === "percent"
+                ? `${line.limit}% cap`
+                : line.format.kind === "dollars"
+                  ? `$${formatNumber(line.limit)} limit`
+                  : `${formatCount(line.limit)} ${line.format.suffix}`}
+            </span>
+          )}
         </div>
       </div>
     );
